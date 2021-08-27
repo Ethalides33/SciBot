@@ -1,5 +1,5 @@
 # SciBot (WIP)
-Discord bot that allows users to look for scientific articles (currently, only those from Nature) from discord. It displays various information on the articles found. It also implements a "hot topic" command, which looks for the most popular recent scientific articles, similar to a scientific newsteller. ALso, it can say hello in most languages (yes, it is useless).
+Discord bot that allows users to look for scientific articles (currently, only those from Nature) directly from Discord. It displays various information on the articles found. It also implements a "hot topic" command, which looks for the most popular recent scientific articles, similar to a scientific newsteller. ALso, it can say hello in most languages (yes, it is useless).
 # Commands
 All commands start with the "scibot" keyword. Type "scibot help" to get more information
 # Interaction example
