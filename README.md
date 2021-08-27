@@ -3,7 +3,7 @@ Discord bot that allows users to look for scientific articles (currently, only t
 # Commands
 All commands start with the "scibot" keyword. Type "scibot help" to get more information
 # Interaction example
-scibot keyword magnet
+```scibot keyword magnet```
 
-Got it, Amaury. Let me have a look...
-I found the following: "Neural Network Based 3-Phase Permanent Magnet Synchronous Motor", by Guard, Nahid. See http://dx.doi.org/10.1007/978-981-16-0739-4_55 for more information.
+```Got it, Amaury. Let me have a look...
+I found the following: "Neural Network Based 3-Phase Permanent Magnet Synchronous Motor", by Guard, Nahid. See http://dx.doi.org/10.1007/978-981-16-0739-4_55 for more information.```
