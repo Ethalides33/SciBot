@@ -3,81 +3,64 @@ import discord
 import requests
 import json
 import random
+from discord.ext import commands
 
-client = discord.Client()
-NATURE_TOKEN = "7badc2a1440f13ae514eff5b58b32f90"
+import words
+import articles
 
-HELLO = ['Hi','Hello','Bonjour','Salut','Hallo','Holà','안녕하십니까','你好','dzień dobry','こんにちは','Kon\'nichiwa','Nǐ hǎo','Annyeonghasibnikka','Hei','Merhaba','Alo','أهلا','Ahlan','שלום','Ciao','สวัสดี','S̄wạs̄dī','Здравствуйте','Zdravstvuyte','Xin chào','Ahoj','Zdravo','Привет','Privet','салам','Salam','Sveiki','Tere','გამარჯობა','gamarjoba','tena koutou','Sawubona','Helo','Halo','नमस्ते','Namastē','nuqneH','Olá','Máriessë','aloha','γεια σας','geia sas','Salve','Përshëndetje']
+bot = commands.Bot(command_prefix='scibot ', case_insensitive=True)
 
-TY = ['You\'re welcome','Ask whenever','My pleasure','Hope this helped!']
-
-
-def get_article_from_keyword(keyword):
-  req = "http://api.springernature.com/metadata/json?q=keyword:" + keyword + "&p=1&api_key="+NATURE_TOKEN
-  article = requests.get(req)
-  formatted =article.json()
-  return(formatted['records'][0]['title'],formatted['records'][0]['creators'][0]['creator'], formatted['records'][0]['url'][0]['value'])
-
-def get_article_from_author(author):
-  req = "http://api.springernature.com/metadata/json?q=name:" + author + "&p=1&api_key="+NATURE_TOKEN
-  article = requests.get(req)
-  formatted =article.json()
-  return(formatted['records'][0]['title'],formatted['records'][0]['creators'][0]['creator'], formatted['records'][0]['url'][0]['value'])
-
-def get_popular_article():
-  req = "https://api.elsevier.com/content/abstract/citations?doi=10.1016%2FS0014-5793(01)03313-0&apiKey=7f59af901d2d86f78a1fd60c1bf9426a&httpAccept=application%2Fjson"
-  article = requests.get(req)
-  print(article)
-  formatted =article.json()
-  print(formatted)
-
-
-@client.event
+@bot.event
 async def on_ready():
-  print("I am ready! Logged in as {0.user}".format(client))
-
-@client.event
-async def on_message(message):
-  if message.author == client.user:
-    return
-  
-  if message.content.startswith("scibot "):
-    l = message.content.split()
-    if l[1] == "author":
-      await message.channel.send("Got it, " + message.author.name + ". Let me have a look...")
-      titre, author, url = get_article_from_author(l[2])
-      await message.channel.send("I found the following: \"{0}\", by {1}. See {2} for more information.".format(titre,author,url))
-
-    elif (l[1] in HELLO) :
-      await message.channel.send(random.choice(HELLO)+", "+ message.author.name + ".")
-
-    elif (l[1] == "Yay") :
-      await message.channel.send("Yeeeeeeeeeey")
-
-    elif (l[1] == "I" and l[2] == "love" and l[3] == "u") :
-      await message.channel.send("I know, I'm often told that baby :smirk::sunglasses:")
-
-    elif (l[1] == "Thank" and l[2] == "you") :
-      await message.channel.send(random.choice(TY) +", "+ message.author.name + ".")
-
-    elif(l[1] == 'keyword'):
-      await message.channel.send("Got it, " + message.author.name + ". Let me have a look...")
-      titre, author,url=get_article_from_keyword(l[2])
-      await message.channel.send("I found the following: \"{0}\", by {1}. See {2} for more information.".format(titre,author,url))
-
-    elif(l[1] == 'popular'):
-      await message.channel.send("Got it, " + message.author.name + ". Let me have a blup...")
-      titre, author,url=get_popular_article(l[2])
-      await message.channel.send("I found the following: \"{0}\", by {1}. See {2} for more information.".format(titre,author,url))
-    
-    elif(l[1] == 'help'):
-      await message.channel.send("Hello, my name is Scibot and I'm a sexy scientist (Hence, not real). I can help you to culture yourself by searching articles using keywords or author you request, but I also like being praised so don't be shy :smirk: .")
-    elif (l[1] == 'hot'):
-      get_popular_article()
-    else:
-      await message.channel.send("I am sorry, but I did not understand. Type \"scibot help\" for more information on how to use me.")
-    
+  print("I am ready! Logged in as {0.user}".format(bot))
 
 
+@bot.command(help="Says hello in a random language.",
+        brief="Says hello.")
+async def hello(ctx):
+  await ctx.channel.send((random.choice(words.HELLO)).capitalize()+", "+ ctx.author.name + ".")
 
-client.run(os.environ['DISCORD_TOKEN'])
+
+def to_lower(string):
+  return string.lower()
+
+
+@bot.command(help="Finds an article in the litterature (Nature and Elservier) according to the keyword / author specified.",
+        brief="Looks for an article in the litterature.")
+async def article(ctx, typeofsearch:to_lower, info:to_lower):
+  await ctx.channel.send("Got it, " + ctx.author.name + ". Let me have a look...")
+
+  if typeofsearch == 'keyword':
+    titre, author,url=articles.from_keyword(info)
+    await ctx.channel.send("I found the following: \"{0}\", by {1}. See {2} for more information.".format(titre,author,url))
+  elif typeofsearch == 'author':
+    titre, author, url = articles.from_author(info)
+    await ctx.channel.send("I found the following: \"{0}\", by {1}. See {2} for more information.".format(titre,author,url))
+
+
+@bot.command(help="Browses science news feeds to look for n news articles related to science and technology",
+        brief="Looks for an article in the news.")
+async def news(ctx, nbr:int):
+  await ctx.channel.send("Got it, " + ctx.author.name + ". Let me have a look...")
+  items = articles.from_popular(nbr)
+  #print(items)
+  string = ''
+  for item in items:
+    string += '* ' + item.title + '. See <' + item.link + '> for more information.\n\n'
+  await ctx.channel.send("I found the following news articles:\n\n " + string)
+
+
+@bot.command(help="Way too long story about me.",
+        brief="Tells you about me.")
+async def about(ctx):
+  await ctx.send("Hello, my name is Scibot and I'm a sexy scientist (Hence, not real). I can help you to stay aware of what is happening in research science all over the world. Or you can use several keywords in order to refine your search about a specific author, domain or subject. Here is the list of existing commands : \n - help : do not worry anymore, Scibot is here to help you interact with him by granting a list of the available commands! \n - author + 'name' : wanna learn more about the work of a particular scientist that caught your eye? Scibot is always here to help! \n - keyword + 'subject keyword' : wanna learn more about a particular subject? Scibot will help you grasp it and make it yours! \n - popular + 'subject keyword' : what has been trending this past year in the 'subject keyword' field? Discover it now with Scibot! \n - hot : hey, do you know what is the hot topic that has shaken the scientific community this past month? It's time to flex in high-society dinner thanks to Scibot! \n - mystery words? : I have a few Easter-eggs commands, can you find them all? Here are a few indices : I have a thing for polite people and I love being praised... :smirk: \n NOTE : all the articles currently issued by Scibot are collected using Springer-Nature API. Other articles sources might follow : keep in touch!")
+
+@bot.event
+async def on_command_error(ctx, error):
+  if isinstance(error,commands.MissingRequiredArgument):
+    await ctx.send('I need more information. Please try again. Type \"scibot help\" for more information.')
+  if isinstance(error, commands.CommandNotFound):
+    await ctx.send('I did not understand. Please try again. Type \"scibot help\" for more information.')
+
+
+bot.run(os.environ['DISCORD_TOKEN'])
